@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wide Open — Camera Basics</title>
+<meta name="description" content="Learn aperture, shutter speed, and ISO by feel, plus a quick reference for the Canon EOS R10.">
+
+<!-- PWA install requirements: a linked manifest (its own URL, so the browser's
+     install prompt has something to read) and a theme color for the OS chrome. -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A1613">
+
+<!-- iOS ignores the manifest for home-screen icons/behavior, so it needs these
+     explicitly — apple-touch-icon for the icon, apple-mobile-web-app-capable
+     so it opens without Safari's browser chrome instead of as a bookmark. -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wide Open">
+
+<link rel="icon" href="icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ---------------------------------------------------------------------
+     TOKENS
+     Every color/type/spacing decision below traces back to one of these.
+     Changing the palette or scale should only ever mean editing this block.
+  ----------------------------------------------------------------------*/
+  :root{
+    --bg-deep:     #1A1613;   /* body background — camera-body charcoal */
+    --panel:       #241E19;   /* cards, chips */
+    --panel-raised:#2E2620;   /* active/hover states */
+    --line:        #3A322A;   /* hairline borders */
+    --text-1:      #F2EBE1;   /* primary text — warm off-white */
+    --text-2:      #A89E92;   /* secondary text */
+    --text-3:      #6F675D;   /* tertiary / disabled */
+    --amber:       #F2A649;   /* signature accent — LED readout amber */
+    --amber-dim:   #7A5A2C;   /* amber at low emphasis (track fills etc) */
+    --focus-green: #7FB069;   /* used ONLY for the AF "in focus" confirm dot */
+
+    --font-display: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+    --font-body:    'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+
+    --radius-s: 8px;
+    --radius-m: 14px;
+    --radius-l: 22px;
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background: var(--bg-deep);
+    color: var(--text-1);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: contain;
+  }
+
+  button{ font-family: inherit; -webkit-tap-highlight-color: transparent; }
+
+  /* Respect reduced-motion: kill the iris/needle transitions, keep the app usable */
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  }
+
+  .app{
+    max-width: 560px;
+    margin: 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* ---------------- Header : mode-dial style tab switcher ---------------- */
+  .topbar{
+    padding: 18px 20px 0;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom: 16px;
+  }
+  .brand svg{ width:26px; height:26px; flex-shrink:0; }
+  .brand span{
+    font-family: var(--font-display);
+    font-weight:600;
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    color: var(--text-2);
+  }
+
+  .maintabs{
+    display:flex;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 4px;
+    gap: 4px;
+  }
+  .maintabs button{
+    flex:1;
+    border:none;
+    background: transparent;
+    color: var(--text-2);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    padding: 11px 0;
+    border-radius: var(--radius-s);
+    cursor:pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .maintabs button.active{
+    background: var(--amber);
+    color: #1A1613;
+  }
+
+  main{ flex:1; padding: 18px 20px 40px; }
+
+  .tabpanel{ display:none; }
+  .tabpanel.active{ display:block; animation: fade 0.25s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  /* ---------------- Lesson sub-tabs (chips, freely jumpable) ---------------- */
+  .subtabs{
+    display:flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 18px;
+    scrollbar-width: none;
+  }
+  .subtabs::-webkit-scrollbar{ display:none; }
+  .chip{
+    flex-shrink:0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text-2);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor:pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .chip.active{
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(242,166,73,0.08);
+  }
+
+  /* ---------------- Lesson card ---------------- */
+  .lesson{ display:none; }
+  .lesson.active{ display:block; animation: fade 0.25s ease; }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    padding: 24px 20px 20px;
+  }
+
+  .eyebrow{
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  .readout{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 44px;
+    color: var(--amber);
+    line-height: 1;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .readout-sub{
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 20px;
+  }
+
+  .stage{
+    width: 100%;
+    aspect-ratio: 16/10;
+    background: #100D0A;
+    border-radius: var(--radius-m);
+    border: 1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .stage svg, .stage canvas{ width:100%; height:100%; display:block; }
+
+  /* ---------------- Slider ---------------- */
+  .slider-row{ margin-bottom: 6px; }
+  input[type="range"]{
+    -webkit-appearance: none;
+    width: 100%;
+    height: 32px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track{
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    width: 22px; height: 22px;
+    margin-top: -9px;
+    border-radius: 50%;
+    background: var(--amber);
+    border: 3px solid #100D0A;
+    box-shadow: 0 0 0 1px var(--amber);
+  }
+  input[type="range"]::-moz-range-track{
+    height:4px; background: var(--line); border-radius: 2px;
+  }
+  input[type="range"]::-moz-range-thumb{
+    width: 16px; height:16px; border-radius:50%;
+    background: var(--amber); border: 3px solid #100D0A;
+  }
+
+  .scale-labels{
+    display:flex; justify-content:space-between;
+    font-family: var(--font-display);
+    font-size: 10.5px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+    margin-bottom: 18px;
+  }
+
+  .explain{
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text-1);
+    margin: 0 0 10px;
+  }
+  .explain.muted{ color: var(--text-2); font-size: 13.5px; }
+
+  hr.rule{ border:none; border-top:1px solid var(--line); margin: 18px 0; }
+
+  /* ---------------- Empty state (R10 tab) ---------------- */
+  .empty-state{
+    text-align:center;
+    padding: 60px 20px;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-l);
+  }
+  .empty-state svg{ width:48px; height:48px; margin-bottom: 18px; opacity:0.6; }
+  .empty-state h2{
+    font-family: var(--font-display);
+    font-size: 15px;
+    letter-spacing: 0.06em;
+    color: var(--text-1);
+    margin: 0 0 10px;
+  }
+  .empty-state p{
+    font-size: 14px;
+    color: var(--text-2);
+    line-height:1.55;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" fill="#241E19" stroke="#3A322A"/>
+        <g id="brandIris"></g>
+      </svg>
+      <span>WIDE OPEN</span>
+    </div>
+    <nav class="maintabs">
+      <button class="active" data-tab="learn">LEARN</button>
+      <button data-tab="r10">R10</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============================= LEARN ============================= -->
+    <section class="tabpanel active" id="tab-learn">
+      <nav class="subtabs">
+        <button class="chip active" data-lesson="aperture">Aperture</button>
+        <button class="chip" data-lesson="shutter">Shutter speed</button>
+        <button class="chip" data-lesson="iso">ISO</button>
+      </nav>
+
+      <!-- ---------- APERTURE ---------- -->
+      <article class="lesson active" id="lesson-aperture">
+        <div class="card">
+          <p class="eyebrow">Aperture</p>
+          <div class="readout">f/<span id="apertureReadout">4</span></div>
+          <p class="readout-sub" id="apertureSubtext">Medium opening — moderate background blur</p>
+
+          <div class="stage">
+            <svg id="irisStage" viewBox="0 0 200 130" width="100%" height="100%"></svg>
+          </div>
+
+          <div class="slider-row">
+            <input type="range" id="apertureSlider" min="0" max="8" step="1" value="3">
+          </div>
+          <div class="scale-labels"><span>f/1.4 — WIDE OPEN</span><span>f/22 — STOPPED DOWN</span></div>
+
+          <p class="explain">Aperture is the opening inside the lens that light passes through. It's measured in <strong>f-stops</strong> — confusingly, a <em>smaller</em> number means a <em>bigger</em> opening.</p>
+          <p class="explain">A wide opening (small f-number, like f/1.4) lets in lots of light and throws the background out of focus — that creamy blur is called <strong>bokeh</strong>. A narrow opening (large f-number, like f/16) lets in less light but keeps more of the scene sharp front-to-back.</p>
+          <hr class="rule">
+          <p class="explain muted">Try it: portraits usually want a wide aperture (low f-number) so the background melts away. Landscapes usually want a narrow aperture (high f-number) so everything stays sharp.</p>
+        </div>
+      </article>
+
+      <!-- ---------- SHUTTER SPEED ---------- -->
+      <article class="lesson" id="lesson-shutter">
+        <div class="card">
+          <p class="eyebrow">Shutter speed</p>
+          <div class="readout"><span id="shutterReadout">1/125</span><span style="font-size:20px;color:var(--text-2)">s</span></div>
+          <p class="readout-sub" id="shutterSubtext">Freezes most everyday motion</p>
+
+          <div class="stage">
+            <svg id="shutterStage" viewBox="0 0 200 130" width="100%" height="100%"></svg>
+          </div>
+
+          <div class="slider-row">
+            <input type="range" id="shutterSlider" min="0" max="11" step="1" value="5">
+          </div>
+          <div class="scale-labels"><span>1/2000 — FAST</span><span>1s — SLOW</span></div>
+
+          <p class="explain">Shutter speed is how long the sensor is exposed to light for a single shot. It's measured in fractions of a second.</p>
+          <p class="explain">A <strong>fast</strong> shutter (1/1000s) freezes motion sharp — good for sports or kids running around. A <strong>slow</strong> shutter (1/4s or slower) blurs anything moving during the exposure — that's how you get silky waterfalls, or light trails from cars at night. It also lets in more light, which matters once it gets dark.</p>
+          <hr class="rule">
+          <p class="explain muted">Watch the dot in the box above: at fast speeds it's frozen in place. Slow it down and it smears into a streak — that streak is motion blur.</p>
+        </div>
+      </article>
+
+      <!-- ---------- ISO ---------- -->
+      <article class="lesson" id="lesson-iso">
+        <div class="card">
+          <p class="eyebrow">ISO</p>
+          <div class="readout">ISO <span id="isoReadout">400</span></div>
+          <p class="readout-sub" id="isoSubtext">Good general-purpose sensitivity</p>
+
+          <div class="stage">
+            <canvas id="isoStage" width="400" height="250"></canvas>
+          </div>
+
+          <div class="slider-row">
+            <input type="range" id="isoSlider" min="0" max="7" step="1" value="2">
+          </div>
+          <div class="scale-labels"><span>ISO 100 — CLEAN</span><span>ISO 12800 — GRAINY</span></div>
+
+          <p class="explain">ISO is how sensitive the sensor is to the light it receives. Low ISO (100) gives the cleanest image but needs plenty of light. Raising the ISO brightens a dark scene, but the trade-off is <strong>noise</strong> — that grainy, speckled texture you can see building up above.</p>
+          <p class="explain">Aperture, shutter speed, and ISO together make up the "exposure triangle." Open the aperture, slow the shutter, or raise the ISO — each one brightens the shot, but each has its own side effect (less depth of field, more motion blur, or more noise).</p>
+          <hr class="rule">
+          <p class="explain muted">Rule of thumb: keep ISO as low as the light allows, and only raise it once aperture and shutter speed are already doing what you need creatively.</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ============================== R10 =============================== -->
+    <section class="tabpanel" id="tab-r10">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#A89E92" stroke-width="1.5">
+          <rect x="3" y="7" width="18" height="13" rx="2"/>
+          <circle cx="12" cy="13.5" r="4"/>
+          <path d="M8 7l1.5-2.5h5L16 7"/>
+        </svg>
+        <h2>CANON EOS R10 REFERENCE</h2>
+        <p>Empty for now. Send Claude a spec source and this tab becomes your quick-reference: dial layout, control ranges, and R10-specific notes.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* =====================================================================
+   TAB NAVIGATION
+   Two independent layers: main tabs (Learn / R10) and, inside Learn,
+   lesson chips (Aperture / Shutter / ISO). Same pattern, two scopes —
+   toggle .active on the clicked control and its matching panel, clear
+   it from siblings.
+===================================================================== */
+document.querySelectorAll('.maintabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.maintabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.subtabs .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('.subtabs .chip').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.lesson').forEach(l=>l.classList.remove('active'));
+    chip.classList.add('active');
+    document.getElementById('lesson-'+chip.dataset.lesson).classList.add('active');
+  });
+});
+
+/* =====================================================================
+   APERTURE — iris built from real polar-coordinate blade math.
+   Real lens irises are N overlapping blades that rotate to change the
+   size of the central opening. We draw N triangular blades around a
+   circle; as "openness" goes from 0 (closed) to 1 (wide open), each
+   blade's inner edge moves further from the center, so the hole they
+   leave behind grows. This is the same shape used for the app icon.
+===================================================================== */
+const F_STOPS = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22];
+const APERTURE_NOTES = [
+  "Maximum opening — very shallow depth of field, strong background blur",
+  "Very wide — creamy bokeh, needs careful focus",
+  "Wide — good for portraits with separation from background",
+  "Medium opening — moderate background blur",
+  "Medium-narrow — subject and near background both fairly sharp",
+  "Narrow — most of the scene sharp, common for landscapes",
+  "Narrow — deep sharpness front to back",
+  "Very narrow — nearly everything in focus, needs more light",
+  "Minimum opening — maximum sharpness depth, needs a lot of light or a tripod"
+];
+
+function drawIris(svgEl, openness, size, nBlades=6){
+  // openness: 0 (closed) .. 1 (wide open)
+  const cx = size/2, cy = size/2;
+  const R = size*0.46;                 // outer reach of each blade
+  const innerR = R * (0.12 + 0.62*(1-openness)); // closed -> big inner radius (small hole)
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.02}" fill="#100D0A"/>`;
+  for(let i=0;i<nBlades;i++){
+    const a0 = i*(2*Math.PI/nBlades);
+    const a1 = (i+1)*(2*Math.PI/nBlades);
+    const aMid = a0 + (2*Math.PI/nBlades)/2;
+    const p = (r,a)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
+    const o1 = p(R, a0), o2 = p(R, a1);
+    const i1 = p(innerR, a0+0.5), i2 = p(innerR, a1);
+    const tip = p(innerR*0.55, aMid);
+    const pts = [o1,o2,i2,tip,i1].map(pt=>pt.join(',')).join(' ');
+    svg += `<polygon points="${pts}" fill="#241E19" stroke="#F2A649" stroke-width="1"/>`;
+  }
+  // amber ring marking the light path opening
+  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="none" stroke="#F2A649" stroke-width="1.5" opacity="0.6"/>`;
+  svgEl.innerHTML = svg;
+}
+
+function updateAperture(idx){
+  const f = F_STOPS[idx];
+  document.getElementById('apertureReadout').textContent = f % 1 === 0 ? f : f.toFixed(1);
+  document.getElementById('apertureSubtext').textContent = APERTURE_NOTES[idx];
+  const openness = 1 - idx/(F_STOPS.length-1); // idx 0 (f/1.4) => openness 1
+  const stage = document.getElementById('irisStage');
+  drawIrisScaled(stage, openness);
+}
+function drawIrisScaled(svgEl, openness){
+  const cx=100, cy=65, R=52, nBlades=6;
+  const innerR = R * (0.10 + 0.68*(1-openness));
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.05}" fill="#100D0A"/>`;
+  for(let i=0;i<nBlades;i++){
+    const a0=i*(2*Math.PI/nBlades), a1=(i+1)*(2*Math.PI/nBlades), aMid=a0+(2*Math.PI/nBlades)/2;
+    const p=(r,a)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
+    const o1=p(R,a0), o2=p(R,a1), i1=p(innerR,a0+0.5), i2=p(innerR,a1), tip=p(innerR*0.55,aMid);
+    const pts=[o1,o2,i2,tip,i1].map(pt=>pt.join(',')).join(' ');
+    svg += `<polygon points="${pts}" fill="#241E19" stroke="#F2A649" stroke-width="1"/>`;
+  }
+  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="none" stroke="#F2A649" stroke-width="1.5" opacity="0.6"/>`;
+  svgEl.innerHTML = svg;
+}
+document.getElementById('apertureSlider').addEventListener('input', e=>updateAperture(+e.target.value));
+updateAperture(3);
+
+// Tiny static version of the same iris used in the header brand mark
+drawIris({innerHTML:'', set innerHTML(v){document.getElementById('brandIris').innerHTML=v;}}, 0.4, 100, 6);
+
+/* =====================================================================
+   SHUTTER SPEED — a dot travels a fixed horizontal distance in a fixed
+   real-world time window. At fast shutter speeds it only covers a tiny
+   fraction of that distance during one exposure, so it's drawn as a
+   crisp dot. At slow shutter speeds it covers much more distance during
+   one exposure, so we draw a faded streak behind it — literal motion
+   blur, not a metaphor for it.
+===================================================================== */
+const SHUTTER_STOPS = [1/2000,1/1000,1/500,1/250,1/125,1/60,1/30,1/15,1/8,1/4,1/2,1];
+const SHUTTER_NOTES = [
+  "Freezes fast action mid-air — needs bright light",
+  "Freezes sports and fast motion",
+  "Freezes most running motion",
+  "Freezes typical walking motion",
+  "Freezes most everyday motion",
+  "Slight blur on fast-moving subjects, minimum for handheld",
+  "Visible motion blur, handheld gets risky",
+  "Clear motion blur — moving water starts to smooth out",
+  "Strong blur — light trails begin to form",
+  "Long blur — flowing water turns silky",
+  "Very long exposure — needs a tripod",
+  "Full second — light trails, silky water, star-like points from lights"
+];
+function fmtShutter(s){ return s>=1 ? s+"" : "1/"+Math.round(1/s); }
+
+function updateShutter(idx){
+  const s = SHUTTER_STOPS[idx];
+  document.getElementById('shutterReadout').textContent = fmtShutter(s);
+  document.getElementById('shutterSubtext').textContent = SHUTTER_NOTES[idx];
+  drawShutterTrail(idx);
+}
+function drawShutterTrail(idx){
+  // map shutter index to a trail length: slowest (idx max) = longest streak
+  const t = idx/(SHUTTER_STOPS.length-1); // 0 fast .. 1 slow
+  const trailLen = 6 + t*110;
+  const x = 150, y = 65;
+  let ghosts = '';
+  const steps = 8;
+  for(let i=steps;i>=1;i--){
+    const off = (trailLen/steps)*i;
+    const op = (1-i/steps)*0.55*t + (t<0.05?0:0);
+    ghosts += `<circle cx="${x-off}" cy="${y}" r="7" fill="#F2A649" opacity="${op.toFixed(2)}"/>`;
+  }
+  const svg = `
+    <line x1="20" y1="${y}" x2="180" y2="${y}" stroke="#3A322A" stroke-width="2" stroke-dasharray="4 4"/>
+    ${ghosts}
+    <circle cx="${x}" cy="${y}" r="7" fill="#F2A649"/>
+  `;
+  document.getElementById('shutterStage').innerHTML = svg;
+}
+document.getElementById('shutterSlider').addEventListener('input', e=>updateShutter(+e.target.value));
+updateShutter(5);
+
+/* =====================================================================
+   ISO — real sensor noise from pushed sensitivity looks like random
+   per-pixel brightness variation ("grain"), plus the overall image gets
+   brighter because the signal is being amplified. We approximate both:
+   a canvas filled with random noise (amount scales with ISO) drawn over
+   a base gray that also brightens with ISO — a low-light scene "gained up."
+===================================================================== */
+const ISO_STOPS = [100,200,400,800,1600,3200,6400,12800];
+const ISO_NOTES = [
+  "Cleanest possible image — needs bright light or a tripod",
+  "Still very clean, good in daylight",
+  "Good general-purpose sensitivity",
+  "Usable indoors, slight grain visible when you zoom in",
+  "Noticeable grain, still usable for most purposes",
+  "Grain clearly visible, useful when you need the shot over the polish",
+  "Heavy grain — last resort before the shot is unusable",
+  "Very heavy grain — only when there's truly no other option"
+];
+const isoCanvas = document.getElementById('isoStage');
+const isoCtx = isoCanvas.getContext('2d');
+
+function drawIsoNoise(idx){
+  const w = isoCanvas.width, h = isoCanvas.height;
+  const t = idx/(ISO_STOPS.length-1); // 0 clean .. 1 grainy
+  const baseGray = 40 + t*70; // scene "brightens" as ISO is pushed, simulating gain
+  const noiseAmt = 8 + t*130;
+
+  const imgData = isoCtx.createImageData(w,h);
+  for(let i=0;i<imgData.data.length;i+=4){
+    const n = (Math.random()-0.5)*noiseAmt;
+    const v = Math.min(255, Math.max(0, baseGray + n));
+    imgData.data[i] = v;
+    imgData.data[i+1] = v * 0.98;   // faint warm cast, like a real sensor
+    imgData.data[i+2] = v * 0.94;
+    imgData.data[i+3] = 255;
+  }
+  isoCtx.putImageData(imgData, 0, 0);
+}
+
+function updateIso(idx){
+  document.getElementById('isoReadout').textContent = ISO_STOPS[idx];
+  document.getElementById('isoSubtext').textContent = ISO_NOTES[idx];
+  drawIsoNoise(idx);
+}
+document.getElementById('isoSlider').addEventListener('input', e=>updateIso(+e.target.value));
+updateIso(2);
+
+/* =====================================================================
+   SERVICE WORKER
+   Registering this is what makes the browser consider the site
+   "installable" — without it, most browsers won't offer Add to Home
+   Screen even with a valid manifest.
+===================================================================== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(err=>console.warn('SW registration failed', err));
+  });
+}
+</script>
+</body>
+</html>
