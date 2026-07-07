@@ -207,10 +207,19 @@
   .readout-sub{
     font-family: var(--font-body);
     font-size: 13.5px;
+    line-height: 1.45;
     color: var(--text-2);
     margin-bottom: 22px;
     padding-bottom: 22px;
     border-bottom: 1px solid var(--line);
+    /* This text changes with every slider move, and its length varies a lot
+       ("Freezes most everyday motion" vs "Full second — light trails, silky
+       water, star-like points from lights"), which used to change the line
+       count and shove the stage/slider below it up and down on every drag.
+       The real fix lives in JS: on load, we measure every possible string
+       for this lesson and reserve whatever the tallest one needs. The
+       min-height here is just a safe floor in case JS hasn't run yet. */
+    min-height: 1.45em;
   }
 
   .stage{
@@ -342,6 +351,7 @@
         <button class="chip active" data-lesson="aperture">Aperture</button>
         <button class="chip" data-lesson="shutter">Shutter speed</button>
         <button class="chip" data-lesson="iso">ISO</button>
+        <button class="chip" data-lesson="lens">Lenses</button>
       </nav>
 
       <!-- ---------- APERTURE ---------- -->
@@ -413,6 +423,42 @@
           <p class="explain">Aperture, shutter speed, and ISO together make up the "exposure triangle." Open the aperture, slow the shutter, or raise the ISO — each one brightens the shot, but each has its own side effect (less depth of field, more motion blur, or more noise).</p>
           <hr class="rule">
           <p class="explain muted">Rule of thumb: keep ISO as low as the light allows, and only raise it once aperture and shutter speed are already doing what you need creatively.</p>
+        </div>
+      </article>
+
+      <!-- ---------- LENSES ---------- -->
+      <article class="lesson" id="lesson-lens">
+        <div class="card">
+          <p class="eyebrow">Lenses</p>
+          <div class="readout"><span id="lensReadout">50</span><span style="font-size:20px;color:var(--text-2)">mm</span></div>
+          <p class="readout-sub" id="lensSubtext">"Normal" — close to what your eye naturally sees, great all-rounder</p>
+
+          <div class="stage">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+            <svg id="lensStage" viewBox="0 0 300 195" width="100%" height="100%">
+              <line x1="-50" y1="150" x2="350" y2="150" stroke="#4A4A46" stroke-width="1"/>
+              <polygon points="0,150 40,100 80,150" fill="#232321" stroke="#4A4A46" stroke-width="1"/>
+              <polygon points="60,150 110,80 160,150" fill="#1B1B19" stroke="#4A4A46" stroke-width="1"/>
+              <polygon points="140,150 190,105 240,150" fill="#232321" stroke="#4A4A46" stroke-width="1"/>
+              <circle cx="40" cy="38" r="13" fill="none" stroke="#E8B923" stroke-width="1.5"/>
+              <rect x="68" y="120" width="4" height="30" fill="#F4F2EE"/>
+              <polygon points="58,120 82,120 70,90" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+              <g id="lensSubject">
+                <circle cx="230" cy="118" r="4" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+                <rect x="227" y="122" width="6" height="16" rx="2" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+              </g>
+            </svg>
+          </div>
+
+          <div class="slider-row">
+            <input type="range" id="lensSlider" min="0" max="7" step="1" value="3">
+          </div>
+          <div class="scale-labels"><span>16mm — WIDE</span><span>400mm — SUPER TELE</span></div>
+
+          <p class="explain">A lens's name usually has two parts, like <strong>RF 50mm F1.8</strong> STM. The <strong>50mm</strong> is the focal length — it controls how much of the scene fits in frame. Small numbers (16mm) are wide-angle and fit a lot in; big numbers (400mm) are telephoto and reach far into a scene, like binoculars. Watch the little figure above: same scene, same distance, just a different focal length zooming the frame in around it.</p>
+          <p class="explain">The <strong>F1.8</strong> works exactly like the f-stop dial from the Aperture tab — it's just telling you the widest this particular lens can open. A <strong>prime</strong> lens (one fixed focal length, like this 50mm) usually opens wider and stays sharp for less money. A <strong>zoom</strong> lens covers a range of focal lengths in one lens, but the maximum aperture often gets smaller as you zoom in — a kit lens might read F4.5-6.3, meaning it can't open as wide once you're zoomed all the way in.</p>
+          <hr class="rule">
+          <p class="explain muted">Your R10 has an APS-C sensor with a 1.6× crop factor, so a 50mm lens on it frames more like an 80mm would on a full-frame camera (50 × 1.6 = 80) — worth factoring in before buying based on the number printed on the box.</p>
         </div>
       </article>
     </section>
@@ -631,6 +677,92 @@ function updateIso(idx){
 }
 document.getElementById('isoSlider').addEventListener('input', e=>updateIso(+e.target.value));
 updateIso(2);
+
+/* =====================================================================
+   LENSES — same "real math, not a metaphor" approach as the other three.
+   Field of view is roughly inversely proportional to focal length: double
+   the mm, roughly halve the width of what fits in frame. Rather than
+   redraw the scene, we keep one fixed illustration and change the SVG
+   viewBox to crop tighter around the subject as focal length increases —
+   literally the same zoom-in effect a longer lens produces.
+===================================================================== */
+const LENS_STOPS = [16, 24, 35, 50, 85, 135, 200, 400];
+const LENS_NOTES = [
+  "Ultra-wide — fits a whole room or a sweeping landscape in one frame",
+  "Wide-angle — landscapes, architecture, tight interiors",
+  "Slightly wide — a common street and environmental portrait length",
+  '"Normal" — close to what your eye naturally sees, great all-rounder',
+  "Short telephoto — classic portrait length, flatters faces",
+  "Telephoto — reaches across a football pitch, compresses backgrounds",
+  "Long telephoto — wildlife and distant sports subjects",
+  "Super telephoto — birds in flight, subjects far out of reach"
+];
+
+function drawLensZoom(mm){
+  const svg = document.getElementById('lensStage');
+  const cx = 230, cy = 128;   // fixed scene coordinates of the subject
+  const refFocal = 16, baseWidth = 300; // full scene visible at 16mm
+  let width = baseWidth * (refFocal / mm);
+  width = Math.max(width, 18); // floor: don't zoom in tighter than the subject itself
+  const height = width / (300/195);
+  svg.setAttribute('viewBox', `${cx - width/2} ${cy - height/2} ${width} ${height}`);
+}
+
+function updateLens(idx){
+  const mm = LENS_STOPS[idx];
+  document.getElementById('lensReadout').textContent = mm;
+  document.getElementById('lensSubtext').textContent = LENS_NOTES[idx];
+  drawLensZoom(mm);
+}
+document.getElementById('lensSlider').addEventListener('input', e=>updateLens(+e.target.value));
+updateLens(3);
+
+/* =====================================================================
+   SUBTEXT HEIGHT RESERVATION
+   Each lesson's subtext line swaps to a different string on every slider
+   move, and those strings vary a lot in length — some wrap to one line,
+   some to two, depending on both the string AND the screen width. If we
+   don't reserve space, the stage/slider/copy below it jumps every time
+   you drag. Guessing a fixed CSS height is fragile (depends on font
+   metrics and viewport width), so instead: temporarily render every
+   candidate string in the actual element, measure its real height, keep
+   the tallest, then lock that in as min-height. Re-run on resize since
+   wrapping depends on container width, and after fonts finish loading
+   since swapping Playfair/Inter in can shift metrics slightly.
+===================================================================== */
+function reserveMaxSubtextHeight(elId, strings){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  const original = el.textContent;
+  el.style.minHeight = '0px';
+  let max = 0;
+  strings.forEach(s=>{
+    el.textContent = s;
+    max = Math.max(max, el.offsetHeight);
+  });
+  el.textContent = original;
+  el.style.minHeight = max + 'px';
+}
+
+function reserveAllSubtextHeights(){
+  reserveMaxSubtextHeight('apertureSubtext', APERTURE_NOTES);
+  reserveMaxSubtextHeight('shutterSubtext', SHUTTER_NOTES);
+  reserveMaxSubtextHeight('isoSubtext', ISO_NOTES);
+  reserveMaxSubtextHeight('lensSubtext', LENS_NOTES);
+}
+
+// Run once fonts are actually ready (measuring against fallback fonts
+// would reserve the wrong height), then again on resize/rotation.
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(reserveAllSubtextHeights);
+} else {
+  reserveAllSubtextHeights();
+}
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(reserveAllSubtextHeights, 150);
+});
 
 /* =====================================================================
    SERVICE WORKER

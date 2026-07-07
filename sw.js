@@ -2,7 +2,7 @@
 // only way the browser knows to throw out the old cache and fetch fresh copies.
 // Forgetting this is the #1 reason a deployed PWA update "doesn't show up":
 // the service worker keeps serving the old cached version until this changes.
-const CACHE_NAME = 'wide-open-v1';
+const CACHE_NAME = 'wide-open-v2';
 
 const APP_SHELL = [
   './',
