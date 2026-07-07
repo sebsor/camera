@@ -21,11 +21,55 @@
 
 <link rel="icon" href="icon-192.png">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
+  /* Self-hosted fonts instead of a Google Fonts <link>. The service worker
+     can only guarantee offline access to files it actually caches — Google's
+     CDN is a different origin it has no control over, so if that request
+     ever failed offline, the app would silently fall back to the generic
+     system font. Hosting the four weights we actually use ourselves (~196KB
+     total) means the fonts are cached exactly like every other app-shell
+     file, and the "offline support" claim in sw.js is actually true. */
+  @font-face{
+    font-family:'Playfair Display'; font-style:normal; font-weight:500;
+    src: url('fonts/playfair-display-latin-500-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Playfair Display'; font-style:normal; font-weight:600;
+    src: url('fonts/playfair-display-latin-600-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Playfair Display'; font-style:normal; font-weight:700;
+    src: url('fonts/playfair-display-latin-700-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Playfair Display'; font-style:italic; font-weight:600;
+    src: url('fonts/playfair-display-latin-600-italic.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:400;
+    src: url('fonts/inter-latin-400-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:500;
+    src: url('fonts/inter-latin-500-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:600;
+    src: url('fonts/inter-latin-600-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:700;
+    src: url('fonts/inter-latin-700-normal.woff2') format('woff2');
+    font-display: swap;
+  }
+
   /* ---------------------------------------------------------------------
      TOKENS
      Editorial photography-magazine palette: paper white, near-black ink,
@@ -41,7 +85,7 @@
     --line:        #DEDAD2;   /* hairline borders */
     --text-1:      #141414;   /* primary text — near black ink */
     --text-2:      #58544C;   /* secondary text */
-    --text-3:      #8C877C;   /* tertiary / disabled */
+    --text-3:      #757168;   /* tertiary / disabled — darkened from #8C877C to clear WCAG AA (was 3.4:1, now 4.62:1) */
     --amber:       #E8B923;   /* signature accent — editorial yellow */
     --amber-dim:   #F3E4A8;   /* yellow at low emphasis (track fills etc) */
     --focus-green: #3F7A4E;   /* used ONLY for the AF "in focus" confirm dot */
@@ -334,13 +378,13 @@
   }
 
   /* ---------------- R10 reference content ---------------- */
-  .r10-intro{
+  .ref-intro{
     font-size: 14.5px;
     line-height: 1.6;
     color: var(--text-1);
     margin: 0 0 10px;
   }
-  .r10-source{
+  .ref-source{
     font-size: 12.5px;
     color: var(--text-3);
     line-height: 1.5;
@@ -348,16 +392,16 @@
     padding-bottom: 22px;
     border-bottom: 1px solid var(--line);
   }
-  .r10-source a{ color: var(--text-2); }
+  .ref-source a{ color: var(--text-2); }
 
-  .r10-onetime{
+  .ref-callout{
     background: var(--panel-raised);
     border: 1px solid var(--line);
     border-radius: var(--radius-l);
     padding: 20px 20px 18px;
     margin-bottom: 28px;
   }
-  .r10-onetime h3{
+  .ref-callout h3{
     margin: 0 0 12px;
     font-family: var(--font-body);
     font-weight: 700;
@@ -366,7 +410,7 @@
     text-transform: uppercase;
     color: var(--text-3);
   }
-  .r10-onetime ol{
+  .ref-callout ol{
     margin: 0;
     padding-left: 20px;
     font-size: 14px;
@@ -376,8 +420,8 @@
 
   /* Native <details>/<summary> — no JS needed for expand/collapse, and it's
      keyboard- and screen-reader-accessible for free. */
-  .r10-group{ border-bottom: 1px solid var(--line); }
-  .r10-group summary{
+  .ref-group{ border-bottom: 1px solid var(--line); }
+  .ref-group summary{
     list-style: none;
     cursor: pointer;
     display: flex;
@@ -391,22 +435,22 @@
     text-transform: uppercase;
     color: var(--text-1);
   }
-  .r10-group summary::-webkit-details-marker{ display:none; }
-  .r10-group summary::after{
+  .ref-group summary::-webkit-details-marker{ display:none; }
+  .ref-group summary::after{
     content:'+';
     color: var(--amber);
     font-family: var(--font-display);
     font-size: 20px;
     font-weight: 600;
   }
-  .r10-group[open] summary::after{ content:'−'; }
+  .ref-group[open] summary::after{ content:'−'; }
 
-  .r10-list{ list-style:none; margin:0; padding:0 2px 20px; }
-  .r10-item{ padding: 12px 0; border-top: 1px solid var(--line); }
-  .r10-item:first-child{ border-top:none; }
-  .r10-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
-  .r10-setting{ font-size:14px; font-weight:600; color:var(--text-1); }
-  .r10-value{
+  .ref-list{ list-style:none; margin:0; padding:0 2px 20px; }
+  .ref-item{ padding: 12px 0; border-top: 1px solid var(--line); }
+  .ref-item:first-child{ border-top:none; }
+  .ref-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .ref-setting{ font-size:14px; font-weight:600; color:var(--text-1); }
+  .ref-value{
     flex-shrink:0;
     font-family: var(--font-body);
     font-weight: 700;
@@ -418,7 +462,29 @@
     border-radius: 2px;
     white-space: nowrap;
   }
-  .r10-note{ font-size:13px; color:var(--text-2); line-height:1.5; margin:5px 0 0; }
+  .ref-note{ font-size:13px; color:var(--text-2); line-height:1.5; margin:5px 0 0; }
+
+  .toggle-btn{
+    display:inline-flex;
+    align-items:center;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text-1);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    padding: 9px 16px;
+    border-radius: 2px;
+    cursor: pointer;
+    margin: 14px 0 4px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .toggle-btn.active{
+    border-color: var(--amber);
+    background: var(--amber-dim);
+    color: #6B5518;
+  }
 </style>
 </head>
 <body>
@@ -435,6 +501,7 @@
     <nav class="maintabs">
       <button class="active" data-tab="learn">LEARN</button>
       <button data-tab="r10">R10</button>
+      <button data-tab="tips">TIPS</button>
     </nav>
   </header>
 
@@ -461,7 +528,7 @@
           </div>
 
           <div class="slider-row">
-            <input type="range" id="apertureSlider" min="0" max="8" step="1" value="3">
+            <input type="range" id="apertureSlider" min="0" max="8" step="1" value="3" aria-label="Aperture, f-stop">
           </div>
           <div class="scale-labels"><span>f/1.4 — WIDE OPEN</span><span>f/22 — STOPPED DOWN</span></div>
 
@@ -485,7 +552,7 @@
           </div>
 
           <div class="slider-row">
-            <input type="range" id="shutterSlider" min="0" max="11" step="1" value="5">
+            <input type="range" id="shutterSlider" min="0" max="11" step="1" value="5" aria-label="Shutter speed">
           </div>
           <div class="scale-labels"><span>1/2000 — FAST</span><span>1s — SLOW</span></div>
 
@@ -509,7 +576,7 @@
           </div>
 
           <div class="slider-row">
-            <input type="range" id="isoSlider" min="0" max="7" step="1" value="2">
+            <input type="range" id="isoSlider" min="0" max="7" step="1" value="2" aria-label="ISO">
           </div>
           <div class="scale-labels"><span>ISO 100 — CLEAN</span><span>ISO 12800 — GRAINY</span></div>
 
@@ -545,7 +612,7 @@
           </div>
 
           <div class="slider-row">
-            <input type="range" id="lensSlider" min="0" max="7" step="1" value="2">
+            <input type="range" id="lensSlider" min="0" max="7" step="1" value="2" aria-label="Focal length">
           </div>
           <div class="scale-labels"><span>18mm — WIDE</span><span>400mm — SUPER TELE</span></div>
 
@@ -559,10 +626,10 @@
 
     <!-- ============================== R10 =============================== -->
     <section class="tabpanel" id="tab-r10">
-      <p class="r10-intro">A starting-point configuration for the R10 — adapted from one experienced reviewer's personal setup preferences, not Canon's official defaults. Treat it as a sensible baseline to adjust as you figure out your own taste.</p>
-      <p class="r10-source">Source: Bryan Carnathan, <a href="https://www.the-digital-picture.com/News/The-Ultimate-Canon-EOS-R10-Setup" target="_blank" rel="noopener">"46 Steps to the Ultimate Canon EOS R10 Setup," The-Digital-Picture.com</a>.</p>
+      <p class="ref-intro">A starting-point configuration for the R10 — adapted from one experienced reviewer's personal setup preferences, not Canon's official defaults. Treat it as a sensible baseline to adjust as you figure out your own taste.</p>
+      <p class="ref-source">Source: Bryan Carnathan, <a href="https://www.the-digital-picture.com/News/The-Ultimate-Canon-EOS-R10-Setup" target="_blank" rel="noopener">"46 Steps to the Ultimate Canon EOS R10 Setup," The-Digital-Picture.com</a>.</p>
 
-      <div class="r10-onetime">
+      <div class="ref-callout">
         <h3>Before anything else</h3>
         <ol>
           <li>Charge the battery, and if you're setting this up fresh, install Canon's free desktop software (Digital Photo Professional and EOS Utility) so it's ready when you import your first shots.</li>
@@ -572,121 +639,250 @@
         </ol>
       </div>
 
-      <details class="r10-group" open>
+      <details class="ref-group" open>
         <summary>Shooting menu</summary>
-        <ul class="r10-list">
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Image quality</span><span class="r10-value">RAW ONLY</span></div>
-            <p class="r10-note">Skips JPEG entirely. RAW keeps every bit of sensor data for editing later, at the cost of needing editing software before you get a finished photo.</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Image quality</span><span class="ref-value">RAW ONLY</span></div>
+            <p class="ref-note">Skips JPEG entirely. RAW keeps every bit of sensor data for editing later, at the cost of needing editing software before you get a finished photo.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Auto Lighting Optimizer</span><span class="r10-value">OFF</span></div>
-            <p class="r10-note">This auto-brightens shadows in-camera. Turning it off gives you the unprocessed exposure, which matters if you're editing RAW files yourself anyway.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Auto Lighting Optimizer</span><span class="ref-value">OFF</span></div>
+            <p class="ref-note">This auto-brightens shadows in-camera. Turning it off gives you the unprocessed exposure, which matters if you're editing RAW files yourself anyway.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">White balance</span><span class="r10-value">AWB WHITE</span></div>
-            <p class="r10-note">A solid all-purpose auto setting — easy to correct precisely later if you're shooting RAW.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">White balance</span><span class="ref-value">AWB WHITE</span></div>
+            <p class="ref-note">A solid all-purpose auto setting — easy to correct precisely later if you're shooting RAW.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Picture Style</span><span class="r10-value">NEUTRAL, SHARP. 1</span></div>
-            <p class="r10-note">Flattens contrast so the histogram on the back screen reflects the sensor's real dynamic range instead of an artificially punchy preview.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Picture Style</span><span class="ref-value">NEUTRAL, SHARP. 1</span></div>
+            <p class="ref-note">Flattens contrast so the histogram on the back screen reflects the sensor's real dynamic range instead of an artificially punchy preview.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">High ISO noise reduction</span><span class="r10-value">LOW</span></div>
-            <p class="r10-note">Heavy in-camera noise reduction smooths away fine detail along with the noise — easier to control it yourself during editing instead.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">High ISO noise reduction</span><span class="ref-value">LOW</span></div>
+            <p class="ref-note">Heavy in-camera noise reduction smooths away fine detail along with the noise — easier to control it yourself during editing instead.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Release shutter without card</span><span class="r10-value">OFF</span></div>
-            <p class="r10-note">A safety net — stops you from happily shooting a whole scene with no memory card inserted.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Release shutter without card</span><span class="ref-value">OFF</span></div>
+            <p class="ref-note">A safety net — stops you from happily shooting a whole scene with no memory card inserted.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Image review duration</span><span class="r10-value">4 SEC</span></div>
-            <p class="r10-note">How long a shot stays on screen right after you take it.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Image review duration</span><span class="ref-value">4 SEC</span></div>
+            <p class="ref-note">How long a shot stays on screen right after you take it.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Grid display</span><span class="r10-value">3×3</span></div>
-            <p class="r10-note">Overlay lines for checking alignment and framing without being too busy.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Grid display</span><span class="ref-value">3×3</span></div>
+            <p class="ref-note">Overlay lines for checking alignment and framing without being too busy.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Histogram</span><span class="r10-value">RGB, SMALL</span></div>
-            <p class="r10-note">Shows red/green/blue exposure separately, in a corner rather than taking over the screen.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Histogram</span><span class="ref-value">RGB, SMALL</span></div>
+            <p class="ref-note">Shows red/green/blue exposure separately, in a corner rather than taking over the screen.</p>
           </li>
         </ul>
       </details>
 
-      <details class="r10-group">
+      <details class="ref-group">
         <summary>Autofocus menu</summary>
-        <ul class="r10-list">
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Subject to detect</span><span class="r10-value">SCENE-DEPENDENT</span></div>
-            <p class="r10-note">People, animals, or "no priority" — switch this per subject rather than leaving it on one setting.</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Subject to detect</span><span class="ref-value">SCENE-DEPENDENT</span></div>
+            <p class="ref-note">People, animals, or "no priority" — switch this per subject rather than leaving it on one setting.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Touch &amp; drag AF</span><span class="r10-value">ON</span></div>
-            <p class="r10-note">Lets your thumb slide across the rear screen to move the focus point while your eye stays at the viewfinder.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Touch &amp; drag AF</span><span class="ref-value">ON</span></div>
+            <p class="ref-note">Lets your thumb slide across the rear screen to move the focus point while your eye stays at the viewfinder.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">AF area methods</span><span class="r10-value">SPOT / 1-PT / WHOLE</span></div>
-            <p class="r10-note">Limits which autofocus area modes show up when you cycle through them, so only the useful ones appear.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">AF area methods</span><span class="ref-value">SPOT / 1-PT / WHOLE</span></div>
+            <p class="ref-note">Limits which autofocus area modes show up when you cycle through them, so only the useful ones appear.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">MF peaking</span><span class="r10-value">ON</span></div>
-            <p class="r10-note">Highlights in-focus edges when focusing manually — handy with adapted or manual lenses.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">MF peaking</span><span class="ref-value">ON</span></div>
+            <p class="ref-note">Highlights in-focus edges when focusing manually — handy with adapted or manual lenses.</p>
           </li>
         </ul>
       </details>
 
-      <details class="r10-group">
+      <details class="ref-group">
         <summary>Playback menu</summary>
-        <ul class="r10-list">
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Playback zoom</span><span class="r10-value">10×</span></div>
-            <p class="r10-note">One button press jumps straight into a deep zoom, useful for checking focus on the spot.</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Playback zoom</span><span class="ref-value">10×</span></div>
+            <p class="ref-note">One button press jumps straight into a deep zoom, useful for checking focus on the spot.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Highlight alert</span><span class="r10-value">ON</span></div>
-            <p class="r10-note">Blown-out highlights blink during playback, so overexposure is obvious at a glance.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Highlight alert</span><span class="ref-value">ON</span></div>
+            <p class="ref-note">Blown-out highlights blink during playback, so overexposure is obvious at a glance.</p>
           </li>
         </ul>
       </details>
 
-      <details class="r10-group">
+      <details class="ref-group">
         <summary>Wireless &amp; tools</summary>
-        <ul class="r10-list">
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Airplane mode</span><span class="r10-value">ON</span></div>
-            <p class="r10-note">Keeps WiFi/Bluetooth off by default to save battery — switch it off only when you actually want to transfer images.</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Airplane mode</span><span class="ref-value">ON</span></div>
+            <p class="ref-note">Keeps WiFi/Bluetooth off by default to save battery — switch it off only when you actually want to transfer images.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Auto rotate</span><span class="r10-value">ON COMPUTER</span></div>
-            <p class="r10-note">Portrait shots stay full-size on the camera's own screen, but rotate correctly once imported to a computer.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Auto rotate</span><span class="ref-value">ON COMPUTER</span></div>
+            <p class="ref-note">Portrait shots stay full-size on the camera's own screen, but rotate correctly once imported to a computer.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Beep &amp; mode guide</span><span class="r10-value">OFF</span></div>
-            <p class="r10-note">Quiets the confirmation beep and skips the beginner mode explanations once you don't need them anymore.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Beep &amp; mode guide</span><span class="ref-value">OFF</span></div>
+            <p class="ref-note">Quiets the confirmation beep and skips the beginner mode explanations once you don't need them anymore.</p>
           </li>
         </ul>
       </details>
 
-      <details class="r10-group">
+      <details class="ref-group">
         <summary>Custom functions</summary>
-        <ul class="r10-list">
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Bracketing sequence</span><span class="r10-value">DARK → LIGHT</span></div>
-            <p class="r10-note">If you shoot exposure-bracketed sequences, this orders the darkest frame first.</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Bracketing sequence</span><span class="ref-value">DARK → LIGHT</span></div>
+            <p class="ref-note">If you shoot exposure-bracketed sequences, this orders the darkest frame first.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Retract lens on power off</span><span class="r10-value">OFF</span></div>
-            <p class="r10-note">Stops a carefully set manual focus distance from resetting every time the camera auto-sleeps.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Retract lens on power off</span><span class="ref-value">OFF</span></div>
+            <p class="ref-note">Stops a carefully set manual focus distance from resetting every time the camera auto-sleeps.</p>
           </li>
-          <li class="r10-item">
-            <div class="r10-row"><span class="r10-setting">Button &amp; dial customization</span><span class="r10-value">YOUR CALL</span></div>
-            <p class="r10-note">Genuinely personal — worth revisiting once you know which settings you reach for most while shooting.</p>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Button &amp; dial customization</span><span class="ref-value">YOUR CALL</span></div>
+            <p class="ref-note">Genuinely personal — worth revisiting once you know which settings you reach for most while shooting.</p>
           </li>
         </ul>
       </details>
 
       <p class="explain muted" style="margin-top:22px;">Worth building a "My Menu" of your own most-used settings once a few of these feel familiar — it puts your regulars one press away instead of buried in the full menu tree.</p>
+    </section>
+
+    <!-- ============================== TIPS =============================== -->
+    <section class="tabpanel" id="tab-tips">
+      <p class="ref-intro">General beginner habits that matter more than gear — composition, light, the mistakes almost everyone makes early on, and how to practice in a way that actually improves your eye.</p>
+      <p class="ref-source">Synthesized from a range of photography educators and composition guides — these are starting habits worth knowing, not hard rules.</p>
+
+      <div class="card" style="margin-bottom:26px;">
+        <p class="eyebrow">Try it — rule of thirds</p>
+        <div class="stage">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <svg id="thirdsStage" viewBox="0 0 300 195" width="100%" height="100%">
+            <line x1="-50" y1="150" x2="350" y2="150" stroke="#4A4A46" stroke-width="1"/>
+            <polygon points="0,150 40,100 80,150" fill="#232321" stroke="#4A4A46" stroke-width="1"/>
+            <polygon points="150,150 200,80 250,150" fill="#1B1B19" stroke="#4A4A46" stroke-width="1"/>
+            <rect x="68" y="120" width="4" height="30" fill="#F4F2EE"/>
+            <polygon points="58,120 82,120 70,90" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+            <g id="thirdsSubject">
+              <circle cx="200" cy="60" r="4" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+              <rect x="197" y="64" width="6" height="16" rx="2" fill="#F4F2EE" stroke="#141414" stroke-width="1"/>
+            </g>
+            <g id="thirdsGrid" style="display:none">
+              <line x1="100" y1="0" x2="100" y2="195" stroke="#E8B923" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="200" y1="0" x2="200" y2="195" stroke="#E8B923" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="0" y1="65" x2="300" y2="65" stroke="#E8B923" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="0" y1="130" x2="300" y2="130" stroke="#E8B923" stroke-width="1" stroke-dasharray="3 3"/>
+              <circle cx="200" cy="65" r="3" fill="#E8B923"/>
+            </g>
+          </svg>
+        </div>
+        <button class="toggle-btn" id="thirdsToggle" type="button">Show grid</button>
+        <p class="explain muted">The figure is already placed near the upper-right intersection point rather than dead center — that's the rule of thirds at work, whether or not the grid is visible. Your R10 can show this same grid live in the viewfinder if you turn it on in the shooting menu.</p>
+      </div>
+
+      <details class="ref-group" open>
+        <summary>Composition</summary>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <p class="ref-setting">Use the rule of thirds as a default, not a law</p>
+            <p class="ref-note">Split the frame into a 3×3 grid and place your subject along a line or at an intersection instead of dead center. It's a starting habit that consistently produces balanced shots — not a rule that always applies.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Look for leading lines</p>
+            <p class="ref-note">Paths, fences, rivers, the edge of a building — anything that draws the eye toward your subject. Point them into the frame, flowing toward what you want noticed.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Fill the frame</p>
+            <p class="ref-note">The single most common beginner habit is standing too far back. Get physically closer, or use more focal length, until your subject actually dominates the shot.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Leave room to breathe</p>
+            <p class="ref-note">Empty space around a subject (negative space) isn't wasted — it gives the eye somewhere to rest and makes the subject read more clearly.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Know when to break it</p>
+            <p class="ref-note">Strong symmetry, repeating patterns, or a deliberately centered portrait can all beat a rule-of-thirds composition. Learn the habit first, then learn when to ignore it.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="ref-group">
+        <summary>Light</summary>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <p class="ref-setting">Golden hour is the forgiving window</p>
+            <p class="ref-note">The hour after sunrise and the hour before sunset give warm, low-angle, soft light — the most flattering light of the day, and hard to get badly wrong.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Midday sun is the hard mode</p>
+            <p class="ref-note">Straight-overhead sun causes squinting and harsh shadows under eyes and noses. If you're stuck shooting at noon, move your subject into open shade or put the sun behind them instead of in front.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Overcast days are a secret weapon</p>
+            <p class="ref-note">Cloud cover works like a giant natural softbox — genuinely one of the best conditions for portraits, even though it looks unremarkable to the eye.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Direction matters as much as amount</p>
+            <p class="ref-note">Side light reveals texture and shape, front light flattens it, and backlight can create a glowing edge or a silhouette depending on how you expose for it.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="ref-group">
+        <summary>Common mistakes</summary>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <p class="ref-setting">Centering everything by default</p>
+            <p class="ref-note">Subject, horizon, all dead center. Fine sometimes, but worth questioning as a first instinct rather than a habit.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Camera shake at slow shutter speeds</p>
+            <p class="ref-note">A rough rule of thumb: keep your shutter speed close to 1/(your focal length in mm) unless you're on a tripod. Your kit lens's image stabilization buys you some slack below that.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Forgetting settings from your last session</p>
+            <p class="ref-note">Showing up to shoot without checking that the ISO or exposure compensation isn't still wherever you left it last time. Worth a glance before your first shot.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Chasing gear instead of practice</p>
+            <p class="ref-note">A better lens won't fix composition or timing — those come from shooting a lot and reviewing honestly, not from buying more equipment.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Only ever shooting from eye level</p>
+            <p class="ref-note">Crouch down, get up high, change your angle. The same subject from a different height is often a far more interesting photo.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="ref-group">
+        <summary>Practice habits</summary>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <p class="ref-setting">Shoot often, review honestly</p>
+            <p class="ref-note">The fastest way to improve is taking a lot of photos and actually looking back at what worked and what didn't — not just taking more of them.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Try a one-lens or one-subject constraint</p>
+            <p class="ref-note">Limiting your choices for a session forces you to solve framing problems creatively instead of relying on zooming or switching gear.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Back up your photos properly</p>
+            <p class="ref-note">The classic rule is 3 copies, on 2 different types of storage, with 1 kept somewhere else entirely. Losing a card or a drive is a common, completely avoidable heartbreak.</p>
+          </li>
+          <li class="ref-item">
+            <p class="ref-setting">Learn from people a few steps ahead, not just fellow beginners</p>
+            <p class="ref-note">Swapping tips with people at your exact stage caps how fast you improve. Look for photographers with more experience, not just more enthusiasm.</p>
+          </li>
+        </ul>
+      </details>
     </section>
   </main>
 </div>
@@ -765,8 +961,10 @@ function drawIris(svgEl, openness, size, nBlades=6){
 
 function updateAperture(idx){
   const f = F_STOPS[idx];
-  document.getElementById('apertureReadout').textContent = f % 1 === 0 ? f : f.toFixed(1);
+  const label = f % 1 === 0 ? f : f.toFixed(1);
+  document.getElementById('apertureReadout').textContent = label;
   document.getElementById('apertureSubtext').textContent = APERTURE_NOTES[idx];
+  document.getElementById('apertureSlider').setAttribute('aria-valuetext', `f/${label}`);
   const openness = 1 - idx/(F_STOPS.length-1); // idx 0 (f/1.4) => openness 1
   const stage = document.getElementById('irisStage');
   drawIrisScaled(stage, openness);
@@ -818,8 +1016,10 @@ function fmtShutter(s){ return s>=1 ? s+"" : "1/"+Math.round(1/s); }
 
 function updateShutter(idx){
   const s = SHUTTER_STOPS[idx];
-  document.getElementById('shutterReadout').textContent = fmtShutter(s);
+  const label = fmtShutter(s);
+  document.getElementById('shutterReadout').textContent = label;
   document.getElementById('shutterSubtext').textContent = SHUTTER_NOTES[idx];
+  document.getElementById('shutterSlider').setAttribute('aria-valuetext', `${label} seconds`);
   drawShutterTrail(idx);
 }
 function drawShutterTrail(idx){
@@ -886,6 +1086,7 @@ function drawIsoNoise(idx){
 function updateIso(idx){
   document.getElementById('isoReadout').textContent = ISO_STOPS[idx];
   document.getElementById('isoSubtext').textContent = ISO_NOTES[idx];
+  document.getElementById('isoSlider').setAttribute('aria-valuetext', `ISO ${ISO_STOPS[idx]}`);
   drawIsoNoise(idx);
 }
 document.getElementById('isoSlider').addEventListener('input', e=>updateIso(+e.target.value));
@@ -925,6 +1126,7 @@ function updateLens(idx){
   const mm = LENS_STOPS[idx];
   document.getElementById('lensReadout').textContent = mm;
   document.getElementById('lensSubtext').textContent = LENS_NOTES[idx];
+  document.getElementById('lensSlider').setAttribute('aria-valuetext', `${mm} millimeters`);
   drawLensZoom(mm);
 }
 document.getElementById('lensSlider').addEventListener('input', e=>updateLens(+e.target.value));
@@ -995,6 +1197,21 @@ window.addEventListener('resize', ()=>{
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(reserveAllSubtextHeights, 150);
 });
+
+/* =====================================================================
+   RULE OF THIRDS TOGGLE — simplest possible interaction: show/hide the
+   grid overlay group and flip the button's label/state to match.
+===================================================================== */
+const thirdsToggle = document.getElementById('thirdsToggle');
+const thirdsGrid = document.getElementById('thirdsGrid');
+if(thirdsToggle && thirdsGrid){
+  thirdsToggle.addEventListener('click', ()=>{
+    const showing = thirdsGrid.style.display !== 'none';
+    thirdsGrid.style.display = showing ? 'none' : '';
+    thirdsToggle.textContent = showing ? 'Show grid' : 'Hide grid';
+    thirdsToggle.classList.toggle('active', !showing);
+  });
+}
 
 /* =====================================================================
    SERVICE WORKER
