@@ -9,46 +9,49 @@
 <!-- PWA install requirements: a linked manifest (its own URL, so the browser's
      install prompt has something to read) and a theme color for the OS chrome. -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1A1613">
+<meta name="theme-color" content="#FAF9F7">
 
 <!-- iOS ignores the manifest for home-screen icons/behavior, so it needs these
      explicitly — apple-touch-icon for the icon, apple-mobile-web-app-capable
      so it opens without Safari's browser chrome instead of as a bookmark. -->
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Wide Open">
 
 <link rel="icon" href="icon-192.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
   /* ---------------------------------------------------------------------
      TOKENS
-     Every color/type/spacing decision below traces back to one of these.
-     Changing the palette or scale should only ever mean editing this block.
+     Editorial photography-magazine palette: paper white, near-black ink,
+     one disciplined accent (yellow — used as thin rules and small marks,
+     deliberately NOT a full border, since that specific shape belongs to
+     National Geographic's trademark rather than to "photography" itself).
+     Every color/type/spacing decision below traces to this block.
   ----------------------------------------------------------------------*/
   :root{
-    --bg-deep:     #1A1613;   /* body background — camera-body charcoal */
-    --panel:       #241E19;   /* cards, chips */
-    --panel-raised:#2E2620;   /* active/hover states */
-    --line:        #3A322A;   /* hairline borders */
-    --text-1:      #F2EBE1;   /* primary text — warm off-white */
-    --text-2:      #A89E92;   /* secondary text */
-    --text-3:      #6F675D;   /* tertiary / disabled */
-    --amber:       #F2A649;   /* signature accent — LED readout amber */
-    --amber-dim:   #7A5A2C;   /* amber at low emphasis (track fills etc) */
-    --focus-green: #7FB069;   /* used ONLY for the AF "in focus" confirm dot */
+    --bg-deep:     #FAF9F7;   /* page background — paper white */
+    --panel:       #FFFFFF;   /* cards */
+    --panel-raised:#F4F2EE;   /* active/hover states, subtle */
+    --line:        #DEDAD2;   /* hairline borders */
+    --text-1:      #141414;   /* primary text — near black ink */
+    --text-2:      #58544C;   /* secondary text */
+    --text-3:      #8C877C;   /* tertiary / disabled */
+    --amber:       #E8B923;   /* signature accent — editorial yellow */
+    --amber-dim:   #F3E4A8;   /* yellow at low emphasis (track fills etc) */
+    --focus-green: #3F7A4E;   /* used ONLY for the AF "in focus" confirm dot */
 
-    --font-display: 'IBM Plex Mono', ui-monospace, 'SF Mono', Consolas, monospace;
-    --font-body:    'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+    --font-body:    'Inter', -apple-system, 'Segoe UI', sans-serif;
 
-    --radius-s: 8px;
-    --radius-m: 14px;
-    --radius-l: 22px;
+    --radius-s: 2px;
+    --radius-m: 3px;
+    --radius-l: 4px;
 
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -82,48 +85,49 @@
     padding-bottom: var(--safe-bottom);
   }
 
-  /* ---------------- Header : mode-dial style tab switcher ---------------- */
+  /* ---------------- Header : magazine masthead + underline tabs ----------------
+     Editorial nav doesn't fill pills with color — it marks the active section
+     with a rule underneath, the way a print contents strip or a magazine's
+     top nav underlines the section you're on. Keeps the yellow doing one job
+     (marking position) instead of painting backgrounds. */
   .topbar{
-    padding: 18px 20px 0;
+    padding: 20px 20px 0;
+    border-bottom: 1px solid var(--line);
   }
   .brand{
-    display:flex; align-items:center; gap:10px;
-    margin-bottom: 16px;
+    display:flex; align-items:center; gap:9px;
+    margin-bottom: 18px;
   }
-  .brand svg{ width:26px; height:26px; flex-shrink:0; }
+  .brand svg{ width:24px; height:24px; flex-shrink:0; }
   .brand span{
     font-family: var(--font-display);
+    font-style: italic;
     font-weight:600;
-    font-size: 14px;
-    letter-spacing: 0.14em;
-    color: var(--text-2);
+    font-size: 21px;
+    letter-spacing: 0.01em;
+    color: var(--text-1);
   }
 
   .maintabs{
     display:flex;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-m);
-    padding: 4px;
-    gap: 4px;
+    gap: 24px;
   }
   .maintabs button{
-    flex:1;
     border:none;
     background: transparent;
-    color: var(--text-2);
-    font-family: var(--font-display);
+    color: var(--text-3);
+    font-family: var(--font-body);
     font-weight: 600;
-    font-size: 12.5px;
-    letter-spacing: 0.08em;
-    padding: 11px 0;
-    border-radius: var(--radius-s);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    padding: 0 0 13px;
     cursor:pointer;
-    transition: background 0.2s, color 0.2s;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
   }
   .maintabs button.active{
-    background: var(--amber);
-    color: #1A1613;
+    color: var(--text-1);
+    border-bottom-color: var(--amber);
   }
 
   main{ flex:1; padding: 18px 20px 40px; }
@@ -144,21 +148,22 @@
   .subtabs::-webkit-scrollbar{ display:none; }
   .chip{
     flex-shrink:0;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    color: var(--text-2);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-3);
     font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 14px;
-    padding: 9px 16px;
-    border-radius: 999px;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0 0 8px;
     cursor:pointer;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    transition: border-color 0.2s, color 0.2s;
   }
   .chip.active{
-    border-color: var(--amber);
-    color: var(--amber);
-    background: rgba(242,166,73,0.08);
+    border-bottom-color: var(--amber);
+    color: var(--text-1);
   }
 
   /* ---------------- Lesson card ---------------- */
@@ -169,40 +174,50 @@
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius-l);
-    padding: 24px 20px 20px;
+    padding: 28px 22px 22px;
   }
 
   .eyebrow{
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 11px;
-    letter-spacing: 0.14em;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     color: var(--text-3);
     text-transform: uppercase;
-    margin: 0 0 6px;
+    margin: 0 0 8px;
+    display:flex; align-items:center; gap:7px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background: var(--amber);
+    flex-shrink:0;
   }
 
   .readout{
     font-family: var(--font-display);
+    font-style: italic;
     font-weight: 700;
-    font-size: 44px;
-    color: var(--amber);
+    font-size: 48px;
+    color: var(--text-1);
     line-height: 1;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     font-variant-numeric: tabular-nums;
   }
   .readout-sub{
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 13.5px;
     color: var(--text-2);
-    margin-bottom: 20px;
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
   }
 
   .stage{
     width: 100%;
     aspect-ratio: 16/10;
-    background: #100D0A;
-    border-radius: var(--radius-m);
-    border: 1px solid var(--line);
+    background: #141414;
+    border-radius: var(--radius-s);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -211,6 +226,21 @@
     position: relative;
   }
   .stage svg, .stage canvas{ width:100%; height:100%; display:block; }
+
+  /* Corner brackets: the recurring signature mark, borrowed from AF frames
+     and film-slate corner marks — a photography motif, not a magazine's. */
+  .corner{
+    position:absolute;
+    width:14px; height:14px;
+    border-color: var(--amber);
+    border-style: solid;
+    border-width: 0;
+    pointer-events:none;
+  }
+  .corner.tl{ top:9px; left:9px; border-top-width:2px; border-left-width:2px; }
+  .corner.tr{ top:9px; right:9px; border-top-width:2px; border-right-width:2px; }
+  .corner.bl{ bottom:9px; left:9px; border-bottom-width:2px; border-left-width:2px; }
+  .corner.br{ bottom:9px; right:9px; border-bottom-width:2px; border-right-width:2px; }
 
   /* ---------------- Slider ---------------- */
   .slider-row{ margin-bottom: 6px; }
@@ -228,28 +258,29 @@
   }
   input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance: none;
-    width: 22px; height: 22px;
-    margin-top: -9px;
+    width: 20px; height: 20px;
+    margin-top: -8px;
     border-radius: 50%;
-    background: var(--amber);
-    border: 3px solid #100D0A;
-    box-shadow: 0 0 0 1px var(--amber);
+    background: var(--text-1);
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 0 0 1px var(--line);
   }
   input[type="range"]::-moz-range-track{
     height:4px; background: var(--line); border-radius: 2px;
   }
   input[type="range"]::-moz-range-thumb{
-    width: 16px; height:16px; border-radius:50%;
-    background: var(--amber); border: 3px solid #100D0A;
+    width: 14px; height:14px; border-radius:50%;
+    background: var(--text-1); border: 3px solid #FFFFFF;
   }
 
   .scale-labels{
     display:flex; justify-content:space-between;
-    font-family: var(--font-display);
+    font-family: var(--font-body);
+    font-weight: 600;
     font-size: 10.5px;
     color: var(--text-3);
-    letter-spacing: 0.04em;
-    margin-bottom: 18px;
+    letter-spacing: 0.08em;
+    margin-bottom: 20px;
   }
 
   .explain{
@@ -271,9 +302,10 @@
   }
   .empty-state svg{ width:48px; height:48px; margin-bottom: 18px; opacity:0.6; }
   .empty-state h2{
-    font-family: var(--font-display);
-    font-size: 15px;
-    letter-spacing: 0.06em;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.1em;
     color: var(--text-1);
     margin: 0 0 10px;
   }
@@ -292,10 +324,10 @@
   <header class="topbar">
     <div class="brand">
       <svg viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="46" fill="#241E19" stroke="#3A322A"/>
+        <circle cx="50" cy="50" r="46" fill="#FFFFFF" stroke="#DEDAD2"/>
         <g id="brandIris"></g>
       </svg>
-      <span>WIDE OPEN</span>
+      <span>Wide Open</span>
     </div>
     <nav class="maintabs">
       <button class="active" data-tab="learn">LEARN</button>
@@ -320,6 +352,7 @@
           <p class="readout-sub" id="apertureSubtext">Medium opening — moderate background blur</p>
 
           <div class="stage">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
             <svg id="irisStage" viewBox="0 0 200 130" width="100%" height="100%"></svg>
           </div>
 
@@ -343,6 +376,7 @@
           <p class="readout-sub" id="shutterSubtext">Freezes most everyday motion</p>
 
           <div class="stage">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
             <svg id="shutterStage" viewBox="0 0 200 130" width="100%" height="100%"></svg>
           </div>
 
@@ -366,6 +400,7 @@
           <p class="readout-sub" id="isoSubtext">Good general-purpose sensitivity</p>
 
           <div class="stage">
+            <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
             <canvas id="isoStage" width="400" height="250"></canvas>
           </div>
 
@@ -385,7 +420,7 @@
     <!-- ============================== R10 =============================== -->
     <section class="tabpanel" id="tab-r10">
       <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#A89E92" stroke-width="1.5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" stroke-width="1.5">
           <rect x="3" y="7" width="18" height="13" rx="2"/>
           <circle cx="12" cy="13.5" r="4"/>
           <path d="M8 7l1.5-2.5h5L16 7"/>
@@ -446,10 +481,13 @@ const APERTURE_NOTES = [
 
 function drawIris(svgEl, openness, size, nBlades=6){
   // openness: 0 (closed) .. 1 (wide open)
+  // Stage background stays dark (looking through a viewfinder), so the
+  // blades are drawn as light shapes with crisp black outlines — reads
+  // like a printed technical diagram rather than a glowing gadget UI.
   const cx = size/2, cy = size/2;
   const R = size*0.46;                 // outer reach of each blade
   const innerR = R * (0.12 + 0.62*(1-openness)); // closed -> big inner radius (small hole)
-  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.02}" fill="#100D0A"/>`;
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.02}" fill="none" stroke="#4A4A46" stroke-width="1"/>`;
   for(let i=0;i<nBlades;i++){
     const a0 = i*(2*Math.PI/nBlades);
     const a1 = (i+1)*(2*Math.PI/nBlades);
@@ -459,10 +497,10 @@ function drawIris(svgEl, openness, size, nBlades=6){
     const i1 = p(innerR, a0+0.5), i2 = p(innerR, a1);
     const tip = p(innerR*0.55, aMid);
     const pts = [o1,o2,i2,tip,i1].map(pt=>pt.join(',')).join(' ');
-    svg += `<polygon points="${pts}" fill="#241E19" stroke="#F2A649" stroke-width="1"/>`;
+    svg += `<polygon points="${pts}" fill="#F4F2EE" stroke="#141414" stroke-width="1.5"/>`;
   }
-  // amber ring marking the light path opening
-  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="none" stroke="#F2A649" stroke-width="1.5" opacity="0.6"/>`;
+  // amber ring marking the light path opening — the one accent in the diagram
+  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="#141414" stroke="#E8B923" stroke-width="1.5"/>`;
   svgEl.innerHTML = svg;
 }
 
@@ -477,15 +515,15 @@ function updateAperture(idx){
 function drawIrisScaled(svgEl, openness){
   const cx=100, cy=65, R=52, nBlades=6;
   const innerR = R * (0.10 + 0.68*(1-openness));
-  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.05}" fill="#100D0A"/>`;
+  let svg = `<circle cx="${cx}" cy="${cy}" r="${R*1.05}" fill="none" stroke="#4A4A46" stroke-width="1"/>`;
   for(let i=0;i<nBlades;i++){
     const a0=i*(2*Math.PI/nBlades), a1=(i+1)*(2*Math.PI/nBlades), aMid=a0+(2*Math.PI/nBlades)/2;
     const p=(r,a)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
     const o1=p(R,a0), o2=p(R,a1), i1=p(innerR,a0+0.5), i2=p(innerR,a1), tip=p(innerR*0.55,aMid);
     const pts=[o1,o2,i2,tip,i1].map(pt=>pt.join(',')).join(' ');
-    svg += `<polygon points="${pts}" fill="#241E19" stroke="#F2A649" stroke-width="1"/>`;
+    svg += `<polygon points="${pts}" fill="#F4F2EE" stroke="#141414" stroke-width="1.5"/>`;
   }
-  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="none" stroke="#F2A649" stroke-width="1.5" opacity="0.6"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${innerR*0.5}" fill="#141414" stroke="#E8B923" stroke-width="1.5"/>`;
   svgEl.innerHTML = svg;
 }
 document.getElementById('apertureSlider').addEventListener('input', e=>updateAperture(+e.target.value));
@@ -535,12 +573,12 @@ function drawShutterTrail(idx){
   for(let i=steps;i>=1;i--){
     const off = (trailLen/steps)*i;
     const op = (1-i/steps)*0.55*t + (t<0.05?0:0);
-    ghosts += `<circle cx="${x-off}" cy="${y}" r="7" fill="#F2A649" opacity="${op.toFixed(2)}"/>`;
+    ghosts += `<circle cx="${x-off}" cy="${y}" r="7" fill="#E8B923" opacity="${op.toFixed(2)}"/>`;
   }
   const svg = `
-    <line x1="20" y1="${y}" x2="180" y2="${y}" stroke="#3A322A" stroke-width="2" stroke-dasharray="4 4"/>
+    <line x1="20" y1="${y}" x2="180" y2="${y}" stroke="#4A4A46" stroke-width="2" stroke-dasharray="4 4"/>
     ${ghosts}
-    <circle cx="${x}" cy="${y}" r="7" fill="#F2A649"/>
+    <circle cx="${x}" cy="${y}" r="7" fill="#E8B923"/>
   `;
   document.getElementById('shutterStage').innerHTML = svg;
 }
