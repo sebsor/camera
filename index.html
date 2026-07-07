@@ -169,6 +169,13 @@
   /* ---------------- Lesson card ---------------- */
   .lesson{ display:none; }
   .lesson.active{ display:block; animation: fade 0.25s ease; }
+  /* Used only transiently by JS to measure a currently-hidden lesson's real
+     height (see reserveMaxSubtextHeight). display:none subtrees always
+     report offsetHeight 0, so measuring hidden lessons needs this escape
+     hatch — force layout back on, but keep it invisible and out of the
+     way so nothing flashes on screen. */
+  .lesson.measure-force{ display:block !important; visibility:hidden; }
+  .tabpanel.measure-force{ display:block !important; }
 
   .card{
     background: var(--panel);
@@ -302,7 +309,7 @@
 
   hr.rule{ border:none; border-top:1px solid var(--line); margin: 18px 0; }
 
-  /* ---------------- Empty state (R10 tab) ---------------- */
+  /* ---------------- Empty state (R10 tab, before content exists) ---------------- */
   .empty-state{
     text-align:center;
     padding: 60px 20px;
@@ -325,6 +332,93 @@
     max-width: 340px;
     margin: 0 auto;
   }
+
+  /* ---------------- R10 reference content ---------------- */
+  .r10-intro{
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text-1);
+    margin: 0 0 10px;
+  }
+  .r10-source{
+    font-size: 12.5px;
+    color: var(--text-3);
+    line-height: 1.5;
+    margin: 0 0 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .r10-source a{ color: var(--text-2); }
+
+  .r10-onetime{
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    padding: 20px 20px 18px;
+    margin-bottom: 28px;
+  }
+  .r10-onetime h3{
+    margin: 0 0 12px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .r10-onetime ol{
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-1);
+  }
+
+  /* Native <details>/<summary> — no JS needed for expand/collapse, and it's
+     keyboard- and screen-reader-accessible for free. */
+  .r10-group{ border-bottom: 1px solid var(--line); }
+  .r10-group summary{
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 17px 2px;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-1);
+  }
+  .r10-group summary::-webkit-details-marker{ display:none; }
+  .r10-group summary::after{
+    content:'+';
+    color: var(--amber);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .r10-group[open] summary::after{ content:'−'; }
+
+  .r10-list{ list-style:none; margin:0; padding:0 2px 20px; }
+  .r10-item{ padding: 12px 0; border-top: 1px solid var(--line); }
+  .r10-item:first-child{ border-top:none; }
+  .r10-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+  .r10-setting{ font-size:14px; font-weight:600; color:var(--text-1); }
+  .r10-value{
+    flex-shrink:0;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    color: #6B5518;
+    background: var(--amber-dim);
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .r10-note{ font-size:13px; color:var(--text-2); line-height:1.5; margin:5px 0 0; }
 </style>
 </head>
 <body>
@@ -430,8 +524,8 @@
       <article class="lesson" id="lesson-lens">
         <div class="card">
           <p class="eyebrow">Lenses</p>
-          <div class="readout"><span id="lensReadout">50</span><span style="font-size:20px;color:var(--text-2)">mm</span></div>
-          <p class="readout-sub" id="lensSubtext">"Normal" — close to what your eye naturally sees, great all-rounder</p>
+          <div class="readout"><span id="lensReadout">35</span><span style="font-size:20px;color:var(--text-2)">mm</span></div>
+          <p class="readout-sub" id="lensSubtext">Slightly wide — a common street and environmental portrait length</p>
 
           <div class="stage">
             <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
@@ -451,29 +545,148 @@
           </div>
 
           <div class="slider-row">
-            <input type="range" id="lensSlider" min="0" max="7" step="1" value="3">
+            <input type="range" id="lensSlider" min="0" max="7" step="1" value="2">
           </div>
-          <div class="scale-labels"><span>16mm — WIDE</span><span>400mm — SUPER TELE</span></div>
+          <div class="scale-labels"><span>18mm — WIDE</span><span>400mm — SUPER TELE</span></div>
 
-          <p class="explain">A lens's name usually has two parts, like <strong>RF 50mm F1.8</strong> STM. The <strong>50mm</strong> is the focal length — it controls how much of the scene fits in frame. Small numbers (16mm) are wide-angle and fit a lot in; big numbers (400mm) are telephoto and reach far into a scene, like binoculars. Watch the little figure above: same scene, same distance, just a different focal length zooming the frame in around it.</p>
-          <p class="explain">The <strong>F1.8</strong> works exactly like the f-stop dial from the Aperture tab — it's just telling you the widest this particular lens can open. A <strong>prime</strong> lens (one fixed focal length, like this 50mm) usually opens wider and stays sharp for less money. A <strong>zoom</strong> lens covers a range of focal lengths in one lens, but the maximum aperture often gets smaller as you zoom in — a kit lens might read F4.5-6.3, meaning it can't open as wide once you're zoomed all the way in.</p>
+          <p class="explain">A lens's name has two parts. Yours is the <strong>RF-S 18-45mm F4.5-6.3</strong> IS STM — the <strong>18-45mm</strong> is the focal length range (more on the F4.5-6.3 part below). Focal length controls how much of the scene fits in frame: small numbers are wide-angle and fit a lot in, big numbers are telephoto and reach far into a scene, like binoculars. Watch the little figure above: same scene, same distance, just a different focal length zooming the frame in around it.</p>
+          <p class="explain">The <strong>F4.5-6.3</strong> part works exactly like the f-stop dial from the Aperture tab — it's telling you the widest this lens can open. Yours is a <strong>zoom</strong> lens, so that widest opening actually changes as you zoom: F4.5 at 18mm, narrowing to F6.3 by 45mm. A <strong>prime</strong> lens — one fixed focal length, like the classic RF 50mm F1.8 — skips that trade-off: one fixed, usually wider opening for less money, because it doesn't need the extra glass a zoom does.</p>
           <hr class="rule">
-          <p class="explain muted">Your R10 has an APS-C sensor with a 1.6× crop factor, so a 50mm lens on it frames more like an 80mm would on a full-frame camera (50 × 1.6 = 80) — worth factoring in before buying based on the number printed on the box.</p>
+          <p class="explain muted">Your R10 has an APS-C sensor with a 1.6× crop factor, so your 18-45mm actually frames more like a 29-72mm would on a full-frame camera (18 × 1.6 ≈ 29, 45 × 1.6 = 72) — worth knowing so a shot doesn't look tighter or wider than you expected compared to photos you've seen from full-frame cameras.</p>
         </div>
       </article>
     </section>
 
     <!-- ============================== R10 =============================== -->
     <section class="tabpanel" id="tab-r10">
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-2)" stroke-width="1.5">
-          <rect x="3" y="7" width="18" height="13" rx="2"/>
-          <circle cx="12" cy="13.5" r="4"/>
-          <path d="M8 7l1.5-2.5h5L16 7"/>
-        </svg>
-        <h2>CANON EOS R10 REFERENCE</h2>
-        <p>Empty for now. Send Claude a spec source and this tab becomes your quick-reference: dial layout, control ranges, and R10-specific notes.</p>
+      <p class="r10-intro">A starting-point configuration for the R10 — adapted from one experienced reviewer's personal setup preferences, not Canon's official defaults. Treat it as a sensible baseline to adjust as you figure out your own taste.</p>
+      <p class="r10-source">Source: Bryan Carnathan, <a href="https://www.the-digital-picture.com/News/The-Ultimate-Canon-EOS-R10-Setup" target="_blank" rel="noopener">"46 Steps to the Ultimate Canon EOS R10 Setup," The-Digital-Picture.com</a>.</p>
+
+      <div class="r10-onetime">
+        <h3>Before anything else</h3>
+        <ol>
+          <li>Charge the battery, and if you're setting this up fresh, install Canon's free desktop software (Digital Photo Professional and EOS Utility) so it's ready when you import your first shots.</li>
+          <li>On first power-on, the camera walks you through date, time, and time zone — set it before shooting.</li>
+          <li>Format your memory card <em>in the camera</em>, not on a computer — this wipes it and structures it the way the R10 expects.</li>
+          <li>With a lens mounted and something in focus, adjust the little dial next to the viewfinder (the diopter) until the display looks sharp to <em>your</em> eyes.</li>
+        </ol>
       </div>
+
+      <details class="r10-group" open>
+        <summary>Shooting menu</summary>
+        <ul class="r10-list">
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Image quality</span><span class="r10-value">RAW ONLY</span></div>
+            <p class="r10-note">Skips JPEG entirely. RAW keeps every bit of sensor data for editing later, at the cost of needing editing software before you get a finished photo.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Auto Lighting Optimizer</span><span class="r10-value">OFF</span></div>
+            <p class="r10-note">This auto-brightens shadows in-camera. Turning it off gives you the unprocessed exposure, which matters if you're editing RAW files yourself anyway.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">White balance</span><span class="r10-value">AWB WHITE</span></div>
+            <p class="r10-note">A solid all-purpose auto setting — easy to correct precisely later if you're shooting RAW.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Picture Style</span><span class="r10-value">NEUTRAL, SHARP. 1</span></div>
+            <p class="r10-note">Flattens contrast so the histogram on the back screen reflects the sensor's real dynamic range instead of an artificially punchy preview.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">High ISO noise reduction</span><span class="r10-value">LOW</span></div>
+            <p class="r10-note">Heavy in-camera noise reduction smooths away fine detail along with the noise — easier to control it yourself during editing instead.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Release shutter without card</span><span class="r10-value">OFF</span></div>
+            <p class="r10-note">A safety net — stops you from happily shooting a whole scene with no memory card inserted.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Image review duration</span><span class="r10-value">4 SEC</span></div>
+            <p class="r10-note">How long a shot stays on screen right after you take it.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Grid display</span><span class="r10-value">3×3</span></div>
+            <p class="r10-note">Overlay lines for checking alignment and framing without being too busy.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Histogram</span><span class="r10-value">RGB, SMALL</span></div>
+            <p class="r10-note">Shows red/green/blue exposure separately, in a corner rather than taking over the screen.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="r10-group">
+        <summary>Autofocus menu</summary>
+        <ul class="r10-list">
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Subject to detect</span><span class="r10-value">SCENE-DEPENDENT</span></div>
+            <p class="r10-note">People, animals, or "no priority" — switch this per subject rather than leaving it on one setting.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Touch &amp; drag AF</span><span class="r10-value">ON</span></div>
+            <p class="r10-note">Lets your thumb slide across the rear screen to move the focus point while your eye stays at the viewfinder.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">AF area methods</span><span class="r10-value">SPOT / 1-PT / WHOLE</span></div>
+            <p class="r10-note">Limits which autofocus area modes show up when you cycle through them, so only the useful ones appear.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">MF peaking</span><span class="r10-value">ON</span></div>
+            <p class="r10-note">Highlights in-focus edges when focusing manually — handy with adapted or manual lenses.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="r10-group">
+        <summary>Playback menu</summary>
+        <ul class="r10-list">
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Playback zoom</span><span class="r10-value">10×</span></div>
+            <p class="r10-note">One button press jumps straight into a deep zoom, useful for checking focus on the spot.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Highlight alert</span><span class="r10-value">ON</span></div>
+            <p class="r10-note">Blown-out highlights blink during playback, so overexposure is obvious at a glance.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="r10-group">
+        <summary>Wireless &amp; tools</summary>
+        <ul class="r10-list">
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Airplane mode</span><span class="r10-value">ON</span></div>
+            <p class="r10-note">Keeps WiFi/Bluetooth off by default to save battery — switch it off only when you actually want to transfer images.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Auto rotate</span><span class="r10-value">ON COMPUTER</span></div>
+            <p class="r10-note">Portrait shots stay full-size on the camera's own screen, but rotate correctly once imported to a computer.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Beep &amp; mode guide</span><span class="r10-value">OFF</span></div>
+            <p class="r10-note">Quiets the confirmation beep and skips the beginner mode explanations once you don't need them anymore.</p>
+          </li>
+        </ul>
+      </details>
+
+      <details class="r10-group">
+        <summary>Custom functions</summary>
+        <ul class="r10-list">
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Bracketing sequence</span><span class="r10-value">DARK → LIGHT</span></div>
+            <p class="r10-note">If you shoot exposure-bracketed sequences, this orders the darkest frame first.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Retract lens on power off</span><span class="r10-value">OFF</span></div>
+            <p class="r10-note">Stops a carefully set manual focus distance from resetting every time the camera auto-sleeps.</p>
+          </li>
+          <li class="r10-item">
+            <div class="r10-row"><span class="r10-setting">Button &amp; dial customization</span><span class="r10-value">YOUR CALL</span></div>
+            <p class="r10-note">Genuinely personal — worth revisiting once you know which settings you reach for most while shooting.</p>
+          </li>
+        </ul>
+      </details>
+
+      <p class="explain muted" style="margin-top:22px;">Worth building a "My Menu" of your own most-used settings once a few of these feel familiar — it puts your regulars one press away instead of buried in the full menu tree.</p>
     </section>
   </main>
 </div>
@@ -686,12 +899,12 @@ updateIso(2);
    viewBox to crop tighter around the subject as focal length increases —
    literally the same zoom-in effect a longer lens produces.
 ===================================================================== */
-const LENS_STOPS = [16, 24, 35, 50, 85, 135, 200, 400];
+const LENS_STOPS = [18, 24, 35, 45, 85, 135, 200, 400];
 const LENS_NOTES = [
-  "Ultra-wide — fits a whole room or a sweeping landscape in one frame",
-  "Wide-angle — landscapes, architecture, tight interiors",
+  "Your kit lens's widest end — fits a whole room or a group shot",
+  "Still wide — landscapes, architecture, tight interiors",
   "Slightly wide — a common street and environmental portrait length",
-  '"Normal" — close to what your eye naturally sees, great all-rounder',
+  "Your kit lens's longest end — a natural, slightly-tightened everyday view",
   "Short telephoto — classic portrait length, flatters faces",
   "Telephoto — reaches across a football pitch, compresses backgrounds",
   "Long telephoto — wildlife and distant sports subjects",
@@ -701,7 +914,7 @@ const LENS_NOTES = [
 function drawLensZoom(mm){
   const svg = document.getElementById('lensStage');
   const cx = 230, cy = 128;   // fixed scene coordinates of the subject
-  const refFocal = 16, baseWidth = 300; // full scene visible at 16mm
+  const refFocal = 18, baseWidth = 300; // full scene visible at 18mm, the widest stop
   let width = baseWidth * (refFocal / mm);
   width = Math.max(width, 18); // floor: don't zoom in tighter than the subject itself
   const height = width / (300/195);
@@ -715,7 +928,7 @@ function updateLens(idx){
   drawLensZoom(mm);
 }
 document.getElementById('lensSlider').addEventListener('input', e=>updateLens(+e.target.value));
-updateLens(3);
+updateLens(2);
 
 /* =====================================================================
    SUBTEXT HEIGHT RESERVATION
@@ -733,6 +946,22 @@ updateLens(3);
 function reserveMaxSubtextHeight(elId, strings){
   const el = document.getElementById(elId);
   if(!el) return;
+
+  // display:none elements always report offsetHeight 0 — three of these
+  // four lessons are display:none at any given moment (only the active
+  // one shows), so measuring them directly silently reserved 0px, which
+  // is exactly the bug: no reservation, so the layout still jumped.
+  // Fix: temporarily force this lesson's ancestors into the layout with
+  // .measure-force (display:block, but visibility:hidden so it's still
+  // invisible), measure for real, then remove the override. This works
+  // no matter which tab/lesson the user currently has open.
+  const lesson = el.closest('.lesson');
+  const tabpanel = el.closest('.tabpanel');
+  const lessonWasActive = lesson.classList.contains('active');
+  const tabpanelWasActive = tabpanel.classList.contains('active');
+  if(!tabpanelWasActive) tabpanel.classList.add('measure-force');
+  if(!lessonWasActive) lesson.classList.add('measure-force');
+
   const original = el.textContent;
   el.style.minHeight = '0px';
   let max = 0;
@@ -742,6 +971,9 @@ function reserveMaxSubtextHeight(elId, strings){
   });
   el.textContent = original;
   el.style.minHeight = max + 'px';
+
+  if(!tabpanelWasActive) tabpanel.classList.remove('measure-force');
+  if(!lessonWasActive) lesson.classList.remove('measure-force');
 }
 
 function reserveAllSubtextHeights(){
