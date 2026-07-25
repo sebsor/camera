@@ -463,6 +463,18 @@
     white-space: nowrap;
   }
   .ref-note{ font-size:13px; color:var(--text-2); line-height:1.5; margin:5px 0 0; }
+  .ref-subhead{
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-1);
+    margin: 20px 0 2px;
+    padding-left: 10px;
+    border-left: 3px solid var(--amber);
+  }
+  .ref-subhead:first-of-type{ margin-top: 2px; }
 
   .toggle-btn{
     display:inline-flex;
@@ -640,6 +652,64 @@
       </div>
 
       <details class="ref-group" open>
+        <summary>Custom shooting modes (C1/C2)</summary>
+        <p class="ref-note" style="margin:0 0 4px;">The R10's mode dial has two custom slots. Each one saves a full snapshot — shooting mode, aperture/shutter, AF behavior, white balance, everything — so turning the dial to C1 or C2 instantly recalls a whole recipe instead of you resetting five menus by hand. Two settings suggestions below, built around your kit lens's actual limits rather than an ideal you don't have the glass for yet.</p>
+
+        <p class="ref-subhead">C1 — Portraits</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Shooting mode</span><span class="ref-value">AV (APERTURE-PRIORITY)</span></div>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Aperture</span><span class="ref-value">WIDEST AVAILABLE</span></div>
+            <p class="ref-note">Your kit lens only opens to F4.5 at 18mm, narrowing to F6.3 by 45mm — nowhere near a fast prime's blur, but "widest the lens allows at whatever focal length you're at" is still the right instinct, and it's what separates the subject from the background the most you can get.</p>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Subject to detect</span><span class="ref-value">PEOPLE (EYE DETECT ON)</span></div>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">White balance</span><span class="ref-value">SHADE</span></div>
+            <p class="ref-note">Runs slightly warmer than AWB, which usually flatters skin tones more than a neutral reading does.</p>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">ISO</span><span class="ref-value">AUTO, 100–6400</span></div>
+          </li>
+        </ul>
+
+        <p class="ref-subhead">C2 — Nature</p>
+        <ul class="ref-list">
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Shooting mode</span><span class="ref-value">AV (APERTURE-PRIORITY)</span></div>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Aperture</span><span class="ref-value">F8–F11</span></div>
+            <p class="ref-note">The opposite instinct from portraits — a narrower aperture keeps a landscape sharp from foreground to background instead of isolating one subject.</p>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Subject to detect</span><span class="ref-value">NO PRIORITY</span></div>
+            <p class="ref-note">Switch this to Animals instead if "nature" means wildlife for you more than landscapes — worth having two variants in mind even though there's only one C2 slot to actually store.</p>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">Grid &amp; electronic level</span><span class="ref-value">ON</span></div>
+            <p class="ref-note">A crooked horizon is one of the most common landscape mistakes — the level makes it hard to miss.</p>
+          </li>
+          <li class="ref-item">
+            <div class="ref-row"><span class="ref-setting">ISO</span><span class="ref-value">AUTO, 100–3200</span></div>
+            <p class="ref-note">Capped lower than the portrait preset — landscapes are usually shot more deliberately, so trading a slower shutter for a cleaner file is normally the right call.</p>
+          </li>
+        </ul>
+
+        <p class="ref-subhead">Saving a preset</p>
+        <ol style="margin:4px 0 0; padding-left:20px; font-size:14px; line-height:1.7; color:var(--text-1);">
+          <li>Dial in every setting above by hand first — mode, aperture, AF, white balance, ISO.</li>
+          <li>Tools menu (wrench icon) → <em>Custom shooting mode (C1, C2)</em> → <em>Register settings</em>.</li>
+          <li>Choose C1 or C2 and confirm — that snapshot is now saved to the dial position.</li>
+          <li>Turn the mode dial to C1 or C2 any time to recall it instantly.</li>
+        </ol>
+        <p class="ref-note" style="margin-top:10px;">One deliberate deviation from the R10 setup guide elsewhere on this tab: it suggests leaving <strong>Auto update</strong> enabled, which lets a custom mode silently absorb whatever you change mid-shoot. That's convenient once you know exactly what you're doing. For two <em>intentional</em> recipes you're building right now, I'd leave it <strong>off</strong> instead — otherwise an in-the-moment tweak quietly overwrites the "Portraits" preset you were trying to build, and it stops being a reliable recipe.</p>
+      </details>
+
+      <details class="ref-group">
         <summary>Shooting menu</summary>
         <ul class="ref-list">
           <li class="ref-item">
